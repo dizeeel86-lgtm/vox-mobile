@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="sr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#050914">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="VOX">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <title>VOX Mobile</title>
+  <style>
+    :root{color-scheme:dark;--blue:#48baff;--cyan:#8be4ff;--bg:#050914;--panel:#0b1628;--muted:#91a9c5}
+    *{box-sizing:border-box} body{margin:0;background:radial-gradient(ellipse at 50% 24%,#102d4b 0,#071326 35%,var(--bg) 72%);color:#eef7ff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100svh}
+    .app{max-width:560px;margin:auto;min-height:100svh;padding:env(safe-area-inset-top) 18px calc(18px + env(safe-area-inset-bottom));display:flex;flex-direction:column}
+    header{display:flex;justify-content:space-between;align-items:center;padding:18px 2px 8px}.brand{font-size:23px;font-weight:800;letter-spacing:.22em;color:var(--cyan);text-shadow:0 0 18px #35aaff88}.status{font-size:10px;letter-spacing:.12em;color:#8daac8;border:1px solid #244664;padding:7px 10px;border-radius:20px}
+    .hero{display:flex;flex-direction:column;align-items:center;padding:30px 0 22px}.orb-wrap{width:218px;height:218px;display:grid;place-items:center;position:relative;filter:drop-shadow(0 0 28px #168de866)}
+    .orb{width:150px;height:150px;border-radius:50%;background:radial-gradient(circle at 38% 34%,#d4f8ff 0,#5bc9ff 5%,#167bc1 19%,#071a35 53%,#020713 72%);box-shadow:0 0 18px #53c9ff, inset 0 0 25px #6edcff99;position:relative}
+    .orb:before,.orb:after{content:"";position:absolute;inset:-23px;border:1px solid #55caff9c;border-radius:50%;transform:scaleY(.42) rotate(-25deg);box-shadow:0 0 16px #42baff66}
+    .orb:after{inset:-35px;transform:scaleY(.42) rotate(42deg);border-color:#1b8fe9aa}
+    .ring{position:absolute;inset:5px;border:1px dashed #57caff88;border-radius:50%;animation:spin 18s linear infinite}
+    .ring.two{inset:20px;border-style:solid;border-color:#4ebdff55;animation:spin 12s linear infinite reverse}
+    @keyframes spin{to{transform:rotate(360deg)}} .listening .orb{animation:pulse 1.4s ease-in-out infinite}
+    @keyframes pulse{50%{transform:scale(1.07);box-shadow:0 0 38px #55caff}}
+    .hello{font-size:25px;letter-spacing:.18em;font-weight:300;margin-top:12px}.sub{color:var(--muted);font-size:11px;letter-spacing:.18em;margin-top:8px}
+    .card{background:linear-gradient(145deg,#0d1c31dd,#081222ee);border:1px solid #1b3a58;border-radius:18px;padding:14px;box-shadow:0 12px 35px #0005}
+    .section-title{font-size:11px;color:#8cb4d8;letter-spacing:.16em;margin:0 0 10px}.messages{height:190px;overflow:auto;display:flex;flex-direction:column;gap:9px}
+    .msg{max-width:88%;padding:10px 12px;border-radius:14px;font-size:14px;line-height:1.4;white-space:pre-wrap}.bot{align-self:flex-start;background:#102945;border:1px solid #1c527b}.user{align-self:flex-end;background:#12466a;border:1px solid #247bb0}
+    .composer{display:flex;gap:8px;margin-top:12px}.composer input{min-width:0;flex:1;background:#06101e;border:1px solid #234665;border-radius:13px;padding:13px;color:white;font-size:15px;outline:none}.btn{border:1px solid #267bb0;background:linear-gradient(135deg,#12659a,#0c3155);color:white;border-radius:13px;padding:0 15px;font-weight:700}.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.action{padding:13px 10px;border-radius:14px;border:1px solid #234665;background:#0a192b;color:#d9efff;font-size:13px}.action strong{display:block;color:var(--cyan);font-size:15px;margin-bottom:4px}
+    .mic{width:70px;height:70px;border-radius:50%;border:1px solid #7ad8ff;background:radial-gradient(circle,#176da4,#08203a);color:white;font-size:25px;box-shadow:0 0 24px #39baff66;margin-top:17px}
+    .hint{text-align:center;color:#7895b4;font-size:11px;line-height:1.5;margin:12px 8px}.footer{margin-top:auto;text-align:center;color:#55718e;font-size:10px;padding-top:20px;letter-spacing:.12em}
+    button{cursor:pointer}button:active{transform:scale(.98)}
+  </style>
+</head>
+<body>
+<div class="app">
+  <header><div class="brand">VOX</div><div class="status" id="status">CORE: DEMO MODE</div></header>
+  <section class="hero" id="hero">
+    <div class="orb-wrap"><div class="ring"></div><div class="ring two"></div><div class="orb"></div></div>
+    <div class="hello">I'M VOX</div><div class="sub">YOUR PERSONAL AI ASSISTANT</div>
+    <button class="mic" id="mic" aria-label="Glasovna komanda">🎙</button>
+    <div class="hint" id="hint">Dodirni mikrofon i izgovori komandu.<br>Glasovno prepoznavanje zavisi od podrške iOS pregledača.</div>
+  </section>
+  <section class="card">
+    <p class="section-title">CONVERSATION</p>
+    <div class="messages" id="messages">
+      <div class="msg bot">Zdravo! Ja sam VOX. Ovo je prva probna verzija mog interfejsa. Još nisam povezan sa AI serverom.</div>
+    </div>
+    <div class="composer"><input id="text" placeholder="Napiši poruku VOX-u…" autocomplete="off"><button class="btn" id="send">POŠALJI</button></div>
+  </section>
+  <div class="actions">
+    <button class="action" id="call"><strong>☎ POZIV</strong>Otvori telefonsku aplikaciju</button>
+    <button class="action" id="shortcuts"><strong>⌘ PREČICE</strong>Otvori Apple Shortcuts</button>
+  </div>
+  <div class="footer">VOX MOBILE 1.0 • PRIVATE ASSISTANT</div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const messages=$('messages');
+function add(text,who='bot'){const d=document.createElement('div');d.className='msg '+who;d.textContent=text;messages.appendChild(d);messages.scrollTop=messages.scrollHeight}
+function reply(text){
+  const t=text.toLowerCase();
+  if(t.includes('pozovi')) return 'Razumem da želiš poziv. U ovoj demo verziji još ne mogu direktno da pristupim tvojim kontaktima. Sledeći korak je povezivanje sa iOS prečicom za pozivanje.';
+  if(t.includes('vreme')) return 'Za vremensku prognozu ćemo povezati pouzdan izvor u sledećoj fazi.';
+  if(t.includes('whatsapp')) return 'Mogu da otvorim WhatsApp preko iPhone-a. Direktno slanje poruka ćemo dodati uz potvrdu.';
+  return 'Primio sam komandu: „'+text+'“. Moj AI mozak još nije povezan. Kada postavimo bezbedan backend, odgovaraću inteligentno i izvršavati podržane komande.';
+}
+function send(){const v=$('text').value.trim();if(!v)return;$('text').value='';add(v,'user');setTimeout(()=>add(reply(v)),250)}
+$('send').onclick=send;$('text').addEventListener('keydown',e=>{if(e.key==='Enter')send()});
+$('call').onclick=()=>{add('Otvaram telefonsku aplikaciju.','user');location.href='tel:'};
+$('shortcuts').onclick=()=>{location.href='shortcuts://'};
+let recognition=null;
+const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(SpeechRecognition){recognition=new SpeechRecognition();recognition.lang='sr-RS';recognition.interimResults=false;recognition.onstart=()=>{$('hero').classList.add('listening');$('status').textContent='LISTENING'};recognition.onend=()=>{$('hero').classList.remove('listening');$('status').textContent='CORE: DEMO MODE'};recognition.onresult=e=>{const v=e.results[0][0].transcript;$('text').value=v;send()};recognition.onerror=()=>{$('hint').textContent='Mikrofon nije dostupan ili prepoznavanje nije podržano. Možeš koristiti unos teksta.'}}
+$('mic').onclick=()=>{if(!recognition){$('hint').textContent='Ovaj iPhone pregledač ne podržava ugrađeno prepoznavanje govora. Koristi unos teksta za sada.';return}try{recognition.start()}catch(e){$('hint').textContent='Prepoznavanje je već aktivno ili nije dostupno.'}};
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+</script>
+</body>
+</html>
