@@ -56,25 +56,133 @@
   <div class="footer">VOX MOBILE 1.0 • PRIVATE ASSISTANT</div>
 </div>
 <script>
-const $=id=>document.getElementById(id);
-const messages=$('messages');
-function add(text,who='bot'){const d=document.createElement('div');d.className='msg '+who;d.textContent=text;messages.appendChild(d);messages.scrollTop=messages.scrollHeight}
-function reply(text){
-  const t=text.toLowerCase();
-  if(t.includes('pozovi')) return 'Razumem da želiš poziv. U ovoj demo verziji još ne mogu direktno da pristupim tvojim kontaktima. Sledeći korak je povezivanje sa iOS prečicom za pozivanje.';
-  if(t.includes('vreme')) return 'Za vremensku prognozu ćemo povezati pouzdan izvor u sledećoj fazi.';
-  if(t.includes('whatsapp')) return 'Mogu da otvorim WhatsApp preko iPhone-a. Direktno slanje poruka ćemo dodati uz potvrdu.';
-  return 'Primio sam komandu: „'+text+'“. Moj AI mozak još nije povezan. Kada postavimo bezbedan backend, odgovaraću inteligentno i izvršavati podržane komande.';
+const $ = id => document.getElementById(id);
+const messages = $('messages');
+
+function add(text, who = 'bot') {
+  const d = document.createElement('div');
+  d.className = 'msg ' + who;
+  d.textContent = text;
+  messages.appendChild(d);
+  messages.scrollTop = messages.scrollHeight;
 }
-function send(){const v=$('text').value.trim();if(!v)return;$('text').value='';add(v,'user');setTimeout(()=>add(reply(v)),250)}
-$('send').onclick=send;$('text').addEventListener('keydown',e=>{if(e.key==='Enter')send()});
-$('call').onclick=()=>{add('Otvaram telefonsku aplikaciju.','user');location.href='tel:'};
-$('shortcuts').onclick=()=>{location.href='shortcuts://'};
-let recognition=null;
-const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
-if(SpeechRecognition){recognition=new SpeechRecognition();recognition.lang='sr-RS';recognition.interimResults=false;recognition.onstart=()=>{$('hero').classList.add('listening');$('status').textContent='LISTENING'};recognition.onend=()=>{$('hero').classList.remove('listening');$('status').textContent='CORE: DEMO MODE'};recognition.onresult=e=>{const v=e.results[0][0].transcript;$('text').value=v;send()};recognition.onerror=()=>{$('hint').textContent='Mikrofon nije dostupan ili prepoznavanje nije podržano. Možeš koristiti unos teksta.'}}
-$('mic').onclick=()=>{if(!recognition){$('hint').textContent='Ovaj iPhone pregledač ne podržava ugrađeno prepoznavanje govora. Koristi unos teksta za sada.';return}try{recognition.start()}catch(e){$('hint').textContent='Prepoznavanje je već aktivno ili nije dostupno.'}};
-if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+
+function reply(text) {
+  const t = text.toLowerCase();
+
+  if (t.includes('pozovi'))
+    return 'Razumem. Povezivanje poziva ćemo dodati u sledećoj fazi.';
+  if (t.includes('vreme'))
+    return 'Prognozu ćemo povezati sa AI serverom.';
+  if (t.includes('whatsapp'))
+    return 'WhatsApp integraciju ćemo dodati u sledećoj fazi.';
+
+  return 'Primio sam komandu: „' + text +
+    '“. Moj AI mozak još nije povezan.';
+}
+
+function send() {
+  const v = $('text').value.trim();
+  if (!v) return;
+  $('text').value = '';
+  add(v, 'user');
+  setTimeout(() => add(reply(v)), 250);
+}
+
+$('send').onclick = send;
+$('text').addEventListener('keydown', e => {
+  if (e.key === 'Enter') send();
+});
+
+$('call').onclick = () => {
+  add('Otvaram telefonsku aplikaciju.', 'user');
+  location.href = 'tel:';
+};
+
+$('shortcuts').onclick = () => {
+  location.href = 'shortcuts://';
+};
+
+let stream = null;
+let recorder = null;
+let chunks = [];
+let recording = false;
+
+async function toggleMic() {
+  if (recording) {
+    recorder.stop();
+    recording = false;
+    $('mic').textContent = '🎙';
+    $('status').textContent = 'CORE: DEMO MODE';
+    $('hero').classList.remove('listening');
+    $('hint').textContent =
+      'Snimanje je završeno. Sledeći korak je povezivanje AI servera za prepoznavanje glasa.';
+    return;
+  }
+
+  try {
+    if (!navigator.mediaDevices ||
+        !navigator.mediaDevices.getUserMedia) {
+      throw new Error('Mikrofon nije podržan u ovom pregledaču.');
+    }
+
+    stream = await navigator.mediaDevices.getUserMedia({
+      audio: true
+    });
+
+    const options = {};
+    if (window.MediaRecorder &&
+        MediaRecorder.isTypeSupported('audio/mp4')) {
+      options.mimeType = 'audio/mp4';
+    } else if (window.MediaRecorder &&
+               MediaRecorder.isTypeSupported('audio/webm')) {
+      options.mimeType = 'audio/webm';
+    }
+
+    recorder = new MediaRecorder(stream, options);
+    chunks = [];
+
+    recorder.ondataavailable = e => {
+      if (e.data && e.data.size > 0) chunks.push(e.data);
+    };
+
+    recorder.onstop = () => {
+      const audio = new Blob(chunks, {
+        type: recorder.mimeType || 'audio/mp4'
+      });
+
+      $('hint').textContent =
+        'Mikrofon radi! Snimak je ' +
+        Math.round(audio.size / 1024) +
+        ' KB. Još nije poslat AI serveru.';
+
+      stream.getTracks().forEach(track => track.stop());
+      stream = null;
+    };
+
+    recorder.start();
+    recording = true;
+    $('mic').textContent = '⏹';
+    $('status').textContent = 'LISTENING';
+    $('hero').classList.add('listening');
+    $('hint').textContent =
+      'VOX sluša. Dodirni dugme ponovo da završiš snimanje.';
+
+  } catch (error) {
+    $('hint').textContent =
+      'Greška sa mikrofonom: ' + error.message;
+    $('status').textContent = 'MIC ERROR';
+  }
+}
+
+$('mic').onclick = toggleMic;
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
 </script>
+
 </body>
 </html>
